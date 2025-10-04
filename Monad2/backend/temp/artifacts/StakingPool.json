@@ -1,0 +1,282 @@
+{
+  "contractName": "StakingPool",
+  "sourceCode": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.20;\r\n\r\n/**\r\n * @title StakingPool\r\n * @dev Simple staking mechanism with rewards\r\n */\r\ncontract StakingPool {\r\n    mapping(address => uint256) public stakes;\r\n    mapping(address => uint256) public rewards;\r\n    mapping(address => uint256) public lastStakeTime;\r\n    \r\n    address public admin;\r\n    uint256 public rewardRate = 5; // 5% per period\r\n    uint256 public totalStaked;\r\n    \r\n    event Staked(address indexed user, uint256 amount);\r\n    event Withdrawn(address indexed user, uint256 amount);\r\n    event RewardClaimed(address indexed user, uint256 reward);\r\n    \r\n    constructor() {\r\n        admin = msg.sender;\r\n    }\r\n    \r\n    // Users can stake ETH\r\n    function stake() external payable {\r\n        require(msg.value > 0, \"Amount must be greater than 0\");\r\n        \r\n        stakes[msg.sender] += msg.value;\r\n        totalStaked += msg.value;\r\n        lastStakeTime[msg.sender] = block.timestamp;\r\n        \r\n        emit Staked(msg.sender, msg.value);\r\n    }\r\n    \r\n    // Calculate rewards based on staking duration\r\n    function calculateReward(address user) public view returns (uint256) {\r\n        uint256 stakeDuration = block.timestamp - lastStakeTime[user];\r\n        uint256 reward = (stakes[user] * rewardRate * stakeDuration) / (100 * 365 days);\r\n        return reward;\r\n    }\r\n    \r\n    // Claim accumulated rewards\r\n    function claimReward() external {\r\n        uint256 reward = calculateReward(msg.sender);\r\n        require(reward > 0, \"No rewards available\");\r\n        \r\n        rewards[msg.sender] = 0;\r\n        lastStakeTime[msg.sender] = block.timestamp;\r\n        \r\n        // Send reward\r\n        payable(msg.sender).transfer(reward);\r\n        \r\n        emit RewardClaimed(msg.sender, reward);\r\n    }\r\n    \r\n    // Withdraw staked amount\r\n    function withdraw(uint256 amount) external {\r\n        require(stakes[msg.sender] >= amount, \"Insufficient stake\");\r\n        \r\n        // Send funds first\r\n        (bool sent, ) = msg.sender.call{value: amount}(\"\");\r\n        require(sent, \"Failed to send\");\r\n        \r\n        // Update state\r\n        stakes[msg.sender] -= amount;\r\n        totalStaked -= amount;\r\n        \r\n        emit Withdrawn(msg.sender, amount);\r\n    }\r\n    \r\n    // Emergency function for admin\r\n    function emergencyWithdraw(uint256 amount) external {\r\n        require(tx.origin == admin, \"Only admin\");\r\n        payable(admin).transfer(amount);\r\n    }\r\n    \r\n    // Update reward rate\r\n    function updateRewardRate(uint256 newRate) external {\r\n        require(msg.sender == admin, \"Only admin\");\r\n        rewardRate = newRate;\r\n    }\r\n    \r\n    // Transfer admin rights\r\n    function transferAdmin(address newAdmin) external {\r\n        admin = newAdmin; // Anyone can call this!\r\n    }\r\n    \r\n    // Batch stake for multiple users\r\n    function batchStake(address[] calldata users, uint256[] calldata amounts) external {\r\n        for(uint i = 0; i < users.length; i++) {\r\n            stakes[users[i]] += amounts[i];\r\n            totalStaked += amounts[i];\r\n        }\r\n    }\r\n    \r\n    receive() external payable {\r\n        stakes[msg.sender] += msg.value;\r\n        totalStaked += msg.value;\r\n    }\r\n}",
+  "abi": [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "reward",
+          "type": "uint256"
+        }
+      ],
+      "name": "RewardClaimed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Staked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Withdrawn",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "admin",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "users",
+          "type": "address[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "amounts",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "batchStake",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "calculateReward",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "claimReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "emergencyWithdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "lastStakeTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "rewardRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "rewards",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "stake",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "stakes",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalStaked",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newAdmin",
+          "type": "address"
+        }
+      ],
+      "name": "transferAdmin",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newRate",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateRewardRate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
+    }
+  ],
+  "bytecode": "608060405260056004553480156013575f5ffd5b50600380546001600160a01b031916331790556109b9806100335f395ff3fe6080604052600436106100dc575f3560e01c80637b0a47ee1161007c5780639ef3a261116100575780639ef3a26114610284578063b88a802f146102a3578063d82e3962146102b7578063f851a440146102d6575f5ffd5b80637b0a47ee1461022f5780637bb1ca1914610244578063817b1cd21461026f575f5ffd5b806332b95a6f116100b757806332b95a6f146101ad5780633a4b66f1146101cc5780635312ea8e146101d457806375829def146101f3575f5ffd5b80630700037d1461012357806316934fc4146101615780632e1a7d4d1461018c575f5ffd5b3661011f57335f90815260208190526040812080543492906100ff908490610815565b925050819055503460055f8282546101179190610815565b925050819055005b5f5ffd5b34801561012e575f5ffd5b5061014e61013d36600461082e565b60016020525f908152604090205481565b6040519081526020015b60405180910390f35b34801561016c575f5ffd5b5061014e61017b36600461082e565b5f6020819052908152604090205481565b348015610197575f5ffd5b506101ab6101a636600461085b565b61030d565b005b3480156101b8575f5ffd5b506101ab6101c73660046108ba565b61045f565b6101ab61051b565b3480156101df575f5ffd5b506101ab6101ee36600461085b565b6105f2565b3480156101fe575f5ffd5b506101ab61020d36600461082e565b600380546001600160a01b0319166001600160a01b0392909216919091179055565b34801561023a575f5ffd5b5061014e60045481565b34801561024f575f5ffd5b5061014e61025e36600461082e565b60026020525f908152604090205481565b34801561027a575f5ffd5b5061014e60055481565b34801561028f575f5ffd5b506101ab61029e36600461085b565b610674565b3480156102ae575f5ffd5b506101ab6106c0565b3480156102c2575f5ffd5b5061014e6102d136600461082e565b610790565b3480156102e1575f5ffd5b506003546102f5906001600160a01b031681565b6040516001600160a01b039091168152602001610158565b335f908152602081905260409020548111156103655760405162461bcd60e51b8152602060048201526012602482015271496e73756666696369656e74207374616b6560701b60448201526064015b60405180910390fd5b6040515f90339083908381818185875af1925050503d805f81146103a4576040519150601f19603f3d011682016040523d82523d5f602084013e6103a9565b606091505b50509050806103eb5760405162461bcd60e51b815260206004820152600e60248201526d11985a5b1959081d1bc81cd95b9960921b604482015260640161035c565b335f9081526020819052604081208054849290610409908490610926565b925050819055508160055f8282546104219190610926565b909155505060405182815233907f7084f5476618d8e60b11ef0d7d3f06914655adb8793e28ff7f018d4c76d505d59060200160405180910390a25050565b5f5b838110156105145782828281811061047b5761047b610939565b905060200201355f5f87878581811061049657610496610939565b90506020020160208101906104ab919061082e565b6001600160a01b03166001600160a01b031681526020019081526020015f205f8282546104d89190610815565b9091555083905082828181106104f0576104f0610939565b9050602002013560055f8282546105079190610815565b9091555050600101610461565b5050505050565b5f341161056a5760405162461bcd60e51b815260206004820152601d60248201527f416d6f756e74206d7573742062652067726561746572207468616e2030000000604482015260640161035c565b335f9081526020819052604081208054349290610588908490610815565b925050819055503460055f8282546105a09190610815565b9091555050335f8181526002602052604090819020429055517f9e71bc8eea02a63969f509818f2dafb9254532904319f9dbda79b67bd34a5f3d906105e89034815260200190565b60405180910390a2565b6003546001600160a01b031632146106395760405162461bcd60e51b815260206004820152600a60248201526927b7363c9030b236b4b760b11b604482015260640161035c565b6003546040516001600160a01b039091169082156108fc029083905f818181858888f19350505050158015610670573d5f5f3e3d5ffd5b5050565b6003546001600160a01b031633146106bb5760405162461bcd60e51b815260206004820152600a60248201526927b7363c9030b236b4b760b11b604482015260640161035c565b600455565b5f6106ca33610790565b90505f81116107125760405162461bcd60e51b81526020600482015260146024820152734e6f207265776172647320617661696c61626c6560601b604482015260640161035c565b335f81815260016020908152604080832083905560029091528082204290555183156108fc0291849190818181858888f19350505050158015610757573d5f5f3e3d5ffd5b5060405181815233907f106f923f993c2149d49b4255ff723acafa1f2d94393f561d3eda32ae348f72419060200160405180910390a250565b6001600160a01b0381165f9081526002602052604081205481906107b49042610926565b6004546001600160a01b0385165f908152602081905260408120549293509163bbf81e009184916107e5919061094d565b6107ef919061094d565b6107f99190610964565b949350505050565b634e487b7160e01b5f52601160045260245ffd5b8082018082111561082857610828610801565b92915050565b5f6020828403121561083e575f5ffd5b81356001600160a01b0381168114610854575f5ffd5b9392505050565b5f6020828403121561086b575f5ffd5b5035919050565b5f5f83601f840112610882575f5ffd5b50813567ffffffffffffffff811115610899575f5ffd5b6020830191508360208260051b85010111156108b3575f5ffd5b9250929050565b5f5f5f5f604085870312156108cd575f5ffd5b843567ffffffffffffffff8111156108e3575f5ffd5b6108ef87828801610872565b909550935050602085013567ffffffffffffffff81111561090e575f5ffd5b61091a87828801610872565b95989497509550505050565b8181038181111561082857610828610801565b634e487b7160e01b5f52603260045260245ffd5b808202811582820484141761082857610828610801565b5f8261097e57634e487b7160e01b5f52601260045260245ffd5b50049056fea264697066735822122084d3f4e9bbd6fe725b475c3bd5c6f2d63adfa92207b9f1f4bfd777a2a232543864736f6c634300081e0033",
+  "deployment": {
+    "network": "Monad Testnet",
+    "chainId": 97,
+    "address": "0x95Fea54473A691a8f580c722D6b0aA678747Ec29",
+    "txHash": "0xeebc013d5d0a749a01cb74c823962b3078eb91403a81eb900fe482012b6a3478",
+    "gasUsed": "636189",
+    "blockNumber": 67659434,
+    "explorer": "https://testnet.bscscan.com/address/0x95Fea54473A691a8f580c722D6b0aA678747Ec29",
+    "timestamp": "2025-10-04T15:03:02.626Z"
+  }
+}

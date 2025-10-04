@@ -1,0 +1,50 @@
+{
+  "contractName": "Counter",
+  "sourceCode": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n\ncontract Counter {\n    uint256 public count;\n\n    function increment() public {\n        count += 1;\n    }\n\n    function getCount() public view returns (uint256) {\n        return count;\n    }\n}\n",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "count",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "increment",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "6080604052348015600e575f5ffd5b5060d580601a5f395ff3fe6080604052348015600e575f5ffd5b5060043610603a575f3560e01c806306661abd14603e578063a87d942c146057578063d09de08a14605d575b5f5ffd5b60455f5481565b60405190815260200160405180910390f35b5f546045565b60636065565b005b60015f5f82825460749190607b565b9091555050565b80820180821115609957634e487b7160e01b5f52601160045260245ffd5b9291505056fea264697066735822122028deeb73398e4e64403950ae637579bf6e313bedcb7b2bd13802baed5ff0686664736f6c634300081e0033",
+  "deployment": {
+    "network": "Monad Testnet",
+    "chainId": 97,
+    "address": "0x1728fdC96f2C63369536B16Fed53Fdf9DA5e3675",
+    "txHash": "0xefad762badb70835d3c0115f16489f90f913578bafd31cd0e957b82bc57174c5",
+    "gasUsed": "99495",
+    "blockNumber": 67655210,
+    "explorer": "https://testnet.bscscan.com/address/0x1728fdC96f2C63369536B16Fed53Fdf9DA5e3675",
+    "timestamp": "2025-10-04T14:10:13.890Z"
+  }
+}

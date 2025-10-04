@@ -1,0 +1,29 @@
+{
+  "name": "monad-contract-tester-backend",
+  "version": "1.0.0",
+  "description": "AI-powered smart contract tester for Monad blockchain",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": ["monad", "blockchain", "smart-contract", "ai", "testing"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.5",
+    "hardhat": "^2.22.19",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "solc": "^0.8.28",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

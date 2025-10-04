@@ -1,0 +1,143 @@
+{
+  "contractName": "TokenPresale",
+  "sourceCode": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n\ninterface IERC20 {\n    function transferFrom(address from, address to, uint256 amount) external returns (bool);\n    function transfer(address to, uint256 amount) external returns (bool);\n}\n\ncontract TokenPresale {\n    IERC20 public token;\n    address public owner;\n    uint256 public price; // Price per token in wei\n    uint256 public totalSold;\n\n    event TokensPurchased(address indexed buyer, uint256 amount, uint256 cost);\n\n    constructor(address _token, uint256 _price) {\n        token = IERC20(_token);\n        owner = msg.sender;\n        price = _price;\n    }\n\n    function buyTokens(uint256 amount) external payable {\n        require(amount > 0, \"Amount must be greater than 0\");\n        uint256 cost = amount * price;\n        require(msg.value >= cost, \"Insufficient payment\");\n\n        totalSold += amount;\n        require(token.transfer(msg.sender, amount), \"Token transfer failed\");\n\n        emit TokensPurchased(msg.sender, amount, cost);\n\n        // Refund excess payment\n        if (msg.value > cost) {\n            payable(msg.sender).transfer(msg.value - cost);\n        }\n    }\n\n    function withdraw() external {\n        require(msg.sender == owner, \"Only owner\");\n        payable(owner).transfer(address(this).balance);\n    }\n\n    function fundPresale(uint256 amount) external {\n        require(token.transferFrom(msg.sender, address(this), amount), \"Transfer failed\");\n    }\n}\n",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_price",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "cost",
+          "type": "uint256"
+        }
+      ],
+      "name": "TokensPurchased",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "buyTokens",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "fundPresale",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "price",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "token",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalSold",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "withdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "6080604052348015600e575f5ffd5b506040516105db3803806105db833981016040819052602b91605b565b5f80546001600160a01b039093166001600160a01b03199384161790556001805490921633179091556002556090565b5f5f60408385031215606b575f5ffd5b82516001600160a01b03811681146080575f5ffd5b6020939093015192949293505050565b61053e8061009d5f395ff3fe60806040526004361061006e575f3560e01c80638da5cb5b1161004c5780638da5cb5b146100ba5780639106d7ba146100f6578063a035b1fe14610119578063fc0c546a1461012e575f5ffd5b80633610724e146100725780633ccfd60b1461008757806376f6435c1461009b575b5f5ffd5b610085610080366004610474565b61014c565b005b348015610092575f5ffd5b5061008561033f565b3480156100a6575f5ffd5b506100856100b5366004610474565b6103bf565b3480156100c5575f5ffd5b506001546100d9906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b348015610101575f5ffd5b5061010b60035481565b6040519081526020016100ed565b348015610124575f5ffd5b5061010b60025481565b348015610139575f5ffd5b505f546100d9906001600160a01b031681565b5f81116101a05760405162461bcd60e51b815260206004820152601d60248201527f416d6f756e74206d7573742062652067726561746572207468616e203000000060448201526064015b60405180910390fd5b5f600254826101af919061049f565b9050803410156101f85760405162461bcd60e51b8152602060048201526014602482015273125b9cdd59999a58da595b9d081c185e5b595b9d60621b6044820152606401610197565b8160035f82825461020991906104bc565b90915550505f5460405163a9059cbb60e01b8152336004820152602481018490526001600160a01b039091169063a9059cbb906044016020604051808303815f875af115801561025b573d5f5f3e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061027f91906104cf565b6102c35760405162461bcd60e51b8152602060048201526015602482015274151bdad95b881d1c985b9cd9995c8819985a5b1959605a1b6044820152606401610197565b604080518381526020810183905233917f8fafebcaf9d154343dad25669bfa277f4fbacd7ac6b0c4fed522580e040a0f33910160405180910390a28034111561033b57336108fc61031483346104f5565b6040518115909202915f818181858888f19350505050158015610339573d5f5f3e3d5ffd5b505b5050565b6001546001600160a01b031633146103865760405162461bcd60e51b815260206004820152600a60248201526927b7363c9037bbb732b960b11b6044820152606401610197565b6001546040516001600160a01b03909116904780156108fc02915f818181858888f193505050501580156103bc573d5f5f3e3d5ffd5b50565b5f546040516323b872dd60e01b8152336004820152306024820152604481018390526001600160a01b03909116906323b872dd906064016020604051808303815f875af1158015610412573d5f5f3e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061043691906104cf565b6103bc5760405162461bcd60e51b815260206004820152600f60248201526e151c985b9cd9995c8819985a5b1959608a1b6044820152606401610197565b5f60208284031215610484575f5ffd5b5035919050565b634e487b7160e01b5f52601160045260245ffd5b80820281158282048414176104b6576104b661048b565b92915050565b808201808211156104b6576104b661048b565b5f602082840312156104df575f5ffd5b815180151581146104ee575f5ffd5b9392505050565b818103818111156104b6576104b661048b56fea2646970667358221220c16651a467197cc9ecb7c0343d4c30f335355506b4fa298b1b0f1b0f7055322e64736f6c634300081e0033",
+  "deployment": {
+    "network": "Monad Testnet",
+    "chainId": 97,
+    "address": "0xF924bD201f8592d2B92CF94dd4f25808fBFC3FF0",
+    "txHash": "0x26ef34ee9c0cddcc706e37d0a346b3f4bd81f23a558bbcf89304bd1752b93b34",
+    "gasUsed": "412653",
+    "blockNumber": 67658811,
+    "explorer": "https://testnet.bscscan.com/address/0xF924bD201f8592d2B92CF94dd4f25808fBFC3FF0",
+    "timestamp": "2025-10-04T14:55:15.021Z"
+  }
+}
